@@ -1,3 +1,4 @@
+require 'request_store'
 require 'active_record'
 require 'patches/active_record/xml_attribute_serializer'
 require 'patches/active_record/query_method'
@@ -49,18 +50,22 @@ module Globalize
       i18n_fallbacks? ? I18n.fallbacks[for_locale] : [for_locale.to_sym]
     end
 
+    def storage
+      RequestStore.store
+    end
+
   protected
 
     def read_locale
-      @globalize_locale
+      storage[:globalize_locale]
     end
 
     def set_locale(locale)
-      @globalize_locale = locale.try(:to_sym)
+      storage[:globalize_locale] = locale.try(:to_sym)
     end
 
     def read_fallbacks
-      @fallbacks || HashWithIndifferentAccess.new
+      storage[:globalize_fallbacks] || HashWithIndifferentAccess.new
     end
 
     def set_fallbacks(locales)
@@ -70,7 +75,7 @@ module Globalize
         fallback_hash[key] = value.presence || [key]
       end if locales.present?
 
-      @fallbacks = fallback_hash
+      storage[:globalize_fallbacks] = fallback_hash
     end
   end
 end
